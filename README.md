@@ -15,7 +15,7 @@ Further, it contains the following processing pipelines in `sigma.pipelines.sent
 It supports the following output formats:
 
 * default: plain SentinelOne Deep Visibility queries
-* format_1: json formatted SentinelOne Deep Visibility queries that includes the query, rule name, rule ID, and rule description
+* json: JSON formatted SentinelOne Deep Visibility queries that includes the query, rule name, rule ID, and rule description
 
 This backend is currently maintained by:
 
