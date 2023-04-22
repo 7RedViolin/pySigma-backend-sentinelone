@@ -1,13 +1,12 @@
-# pySigma-backend-sentinelonedeepvisibility
-
+# pySigma-backend-sentinelone
 ![Tests](https://github.com/7RedViolin/pySigma-pipeline-sentinelonedeepvisibility/actions/workflows/test.yml/badge.svg)
 ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/7RedViolin/GitHub Gist identifier containing coverage badge JSON expected by shields.io./raw/7RedViolin-pySigma-pipeline-sentinelonedeepvisibility.json)
 ![Status](https://img.shields.io/badge/Status-pre--release-orange)
 
-# pySigma SentinelOne Deep Visibility Backend
+# pySigma SentinelOne Backend
 
-This is the SentinelOne Deep Visibility backend for pySigma. It provides the package `sigma.backends.sentinelonedeepvisibility` with the `SentinelOneDeepVisibilityBackend` class.
-Further, it contains the following processing pipelines in `sigma.pipelines.sentinelonedeepvisibility`:
+This is the SentinelOne backend for pySigma. It provides the package `sigma.backends.sentinelone` with the `SentinelOneBackend` class.
+Further, it contains the following processing pipelines in `sigma.pipelines.sentinelone`:
 
 * pipeline1: purpose
 * pipeline2: purpose
