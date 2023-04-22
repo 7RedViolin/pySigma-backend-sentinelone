@@ -59,7 +59,6 @@ def test_sentinelone_and_or_expression(sentinelone_backend : SentinelOneBackend)
         """)
     ) == ['EventType="Process Creation" AND ((TgtProcName In Contains AnyCase ("valueA1","valueA2")) AND (SrcProcName In Contains AnyCase ("valueB1","valueB2")))']
 
-
 def test_sentinelone_or_and_expression(sentinelone_backend : SentinelOneBackend):
     assert sentinelone_backend.convert(
         SigmaCollection.from_yaml("""
@@ -128,6 +127,22 @@ def test_sentinelone_cidr_query(sentinelone_backend : SentinelOneBackend):
         """)
     ) == ['EventType="Process Creation" AND field startswithCIS "192.168."']
 
+def test_sentinelone_enum_query(sentinelone_backend : SentinelOneBackend):
+    assert sentinelone_backend.convert(
+        SigmaCollection.from_yaml("""
+            title: Test
+            status: test
+            logsource:
+                category: registry_event
+                product: test_product
+            detection:
+                sel:
+                    EventType: 
+                    - valueA
+                    - valueB
+                condition: sel
+        """)
+    ) == ['ObjectType="Registry" AND (EventType In ("valueA","valueB"))']
 
 def test_sentinelone_default_output(sentinelone_backend : SentinelOneBackend):
     """Test for output format default."""

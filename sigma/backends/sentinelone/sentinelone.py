@@ -5,8 +5,10 @@ from sigma.conversion.base import TextQueryBackend
 from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT
 from sigma.types import SigmaCompareExpression, SigmaRegularExpression
 from sigma.pipelines.sentinelone import sentinelone_pipeline
+from sigma.conversion.deferred import DeferredQueryExpression
+from sigma.types import SigmaString
 import re
-from typing import ClassVar, Dict, Tuple, Pattern, List, Any
+from typing import ClassVar, Dict, Tuple, Pattern, List, Any, Union
 
 class SentinelOneBackend(TextQueryBackend):
     """SentinelOne backend."""
@@ -30,7 +32,6 @@ class SentinelOneBackend(TextQueryBackend):
     and_token : ClassVar[str] = "AND"
     not_token : ClassVar[str] = "NOT"
     eq_token : ClassVar[str] = "="
-
 
     field_quote : ClassVar[str] = "'"
     field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")
@@ -83,6 +84,38 @@ class SentinelOneBackend(TextQueryBackend):
 
     unbound_value_str_expression : ClassVar[str] = '"{value}"'
     unbound_value_num_expression : ClassVar[str] = '"{value}"'
+
+    def convert_condition_as_in_expression(self, cond : Union[ConditionOR, ConditionAND], state : ConversionState) -> Union[str, DeferredQueryExpression]:
+        """
+        Conversion of field in value list conditions.
+        In SentinelOne, certain fields are considered 'ENUM' and can only use the 'in' operator
+        """
+        enum_fields = ['ObjectType', 'EventType', 'EndpointOS', 'DriverLoadVerdict','EndpointMachineType',
+                       'IndicatorCategory','LoginType','NamedPipeAccessMode','NamedPipeConnectionType','NamedPipeReadMode',
+                       'NamedPipeRemoteClients','NamedPipeTypeMode','NamedPipeWaitMode','NetConnStatus','NetEventDirection',
+                       'OsSrcProcActiveContentType','OsSrcProcIntegrityLevel','OsSrcProcParentActiveContentSignedStatus',
+                       'OsSrcProcActiveContentType','OsSrcProcParentIntegrityLevel','OsSrcProcParentSignedStatus','OsSrcProcSignedStatus',
+                       'OsSrcProcVerifiedStatus','RegistryOldValueType','RegistryValueType','SrcProcActiveContentSignedStatus','SrcProcActiveContentType',
+                       'SrcProcIntegrityLevel','SrcProcParentActiveContentSignedStatus','SrcProcParentActiveContentType','SrcProcParentIntegrityLevel',
+                       'SrcProcParentSignedStatus','SrcProcSignedStatus','SrcProcVerifiedStatus','TIIndicatorComparisonMethod','TIIndicatorType','TgtFileConvictedBy',
+                       'TgtFileIsSigned','TgtFileLocation','TgtProcActiveContentSignedStatus','TgtProcActiveContentType','TgtProcIntegrityLevel','TgtProcRelation',
+                       'TgtProcSignedStatus','TgtProcVerifiedStatus','UrlAction']
+
+        if cond.args[0].field in enum_fields:
+            op = "In"
+        else:
+            op = self.or_in_operator if isinstance(cond, ConditionOR) else self.and_in_operator
+
+        return self.field_in_list_expression.format(
+            field=self.escape_and_quote_field(cond.args[0].field),       # The assumption that the field is the same for all argument is valid because this is checked before
+            op=op,
+            list=self.list_separator.join([
+                self.convert_value_str(arg.value, state)
+                if isinstance(arg.value, SigmaString)   # string escaping and qouting
+                else str(arg.value)       # value is number
+                for arg in cond.args
+            ]),
+        )
 
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         return query
