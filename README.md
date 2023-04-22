@@ -6,10 +6,7 @@
 # pySigma SentinelOne Backend
 
 This is the SentinelOne backend for pySigma. It provides the package `sigma.backends.sentinelone` with the `SentinelOneBackend` class.
-Further, it contains the following processing pipelines in `sigma.pipelines.sentinelone`:
-
-* pipeline1: purpose
-* pipeline2: purpose
+Further, it contains the processing pipelines in `sigma.pipelines.sentinelone` for field renames and error handling. This pipeline is automatically applied to `SigmaRule` and `SigmaCollection` objects passed to the `SentinelOneBackend` class.
 
 It supports the following output formats:
 
