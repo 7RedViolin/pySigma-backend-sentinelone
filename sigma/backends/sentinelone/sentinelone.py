@@ -91,7 +91,7 @@ class SentinelOneBackend(TextQueryBackend):
         return queries
 
     def finalize_query_json(self, rule: SigmaRule, query: str, index: int, state:ConversionState) -> dict:
-        return {"query":query, "title":rule.title, "id":rule.id, "description": rule.description, "service": rule.logsource.service}
+        return {"query":query, "title":rule.title, "id":rule.id, "description": rule.description}
     
     def finalize_output_json(self, queries: List[str]) -> dict:
         return {"queries":queries}

@@ -92,7 +92,7 @@ def test_sentinelone_file_mapping(sentinelone_backend : SentinelOneBackend):
         """)
     ) == ['ObjectType="File" AND (SrcProcName="valueA" AND SrcProcCmdLine="invoke-mimikatz" AND ' +
           'SrcProcParentName="valueB" AND SrcProcParentCmdline="Get-Path" AND TgtFilePath="foo bar" AND ' + 
-          'TgtFileOldPath="bar foo" AND User="administrator")']
+          'TgtFileOldPath="bar foo" AND SrcProcUser="administrator")']
 
 def test_sentinelone_image_load_mapping(sentinelone_backend : SentinelOneBackend):
     assert sentinelone_backend.convert(

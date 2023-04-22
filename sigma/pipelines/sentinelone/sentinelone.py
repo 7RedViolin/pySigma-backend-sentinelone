@@ -26,6 +26,16 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(product="windows")
             ]
         ),
+        # Add EndpointOS = OSX
+        ProcessingItem(
+            identifier="s1_osx_product",
+            transformation=AddConditionTransformation({
+                "EndpointOS":"osx"
+            }),
+            rule_conditions=[
+                LogsourceCondition(product="macos")
+            ]
+        )
     ]
 
     object_event_type_filter = [
@@ -113,10 +123,20 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="registry_set")
             ]
         ),
+        # Add ObjectType for DNS Stuff
+        ProcessingItem(
+            identifier="s1_dns_objecttype",
+            transformation=AddConditionTransformation({
+                "ObjectType":"DNS"
+            }),
+            rule_conditions=[
+                LogsourceCondition(category="dns")
+            ]
+        )
     ]
 
     field_mappings = [
-        # Map Fields for Process Creation
+        # Process Creation
         ProcessingItem(
             identifier="s1_process_creation_fieldmapping",
             transformation=FieldMappingTransformation({
@@ -141,7 +161,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="process_creation")
             ]
         ),
-        # Map Fields for File Stuff
+        # File Stuff
         ProcessingItem(
             identifier="s1_file_change_fieldmapping",
             transformation=FieldMappingTransformation({
@@ -161,7 +181,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="file_event")
             ]
         ),
-        # Map Fields for Module Load Stuff
+        # Module Load Stuff
         ProcessingItem(
             identifier="s1_image_load_fieldmapping",
             transformation=FieldMappingTransformation({
@@ -177,7 +197,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="image_load")
             ]
         ),
-        # Map Fields for Pipe Creation Stuff
+        # Pipe Creation Stuff
         ProcessingItem(
             identifier="s1_pipe_creation_fieldmapping",
             transformation=FieldMappingTransformation({
@@ -191,7 +211,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="pipe_creation")
             ]
         ),
-        # Map Fields for Registry Stuff
+        # Registry Stuff
         ProcessingItem(
             identifier="s1_registry_fieldmapping",
             transformation=FieldMappingTransformation({
@@ -210,6 +230,17 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="registry_set")
             ]
         ),
+        # DNS Stuff
+        ProcessingItem(
+            identifier="s1_dns_fieldmapping",
+            transformation=FieldMappingTransformation({
+                "query": "DNSQuery",
+                "answer":"DNSResponse"
+            }),
+            rule_conditions=[
+                LogsourceCondition(category="dns")
+            ]
+        )
     ]
 
     change_logsource_info = [
