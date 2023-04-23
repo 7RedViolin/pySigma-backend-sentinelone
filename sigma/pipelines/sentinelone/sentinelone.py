@@ -129,8 +129,20 @@ def sentinelone_pipeline() -> ProcessingPipeline:
             transformation=AddConditionTransformation({
                 "ObjectType":"DNS"
             }),
+            rule_condition_linking=any,
             rule_conditions=[
+                LogsourceCondition(category="dns_query"),
                 LogsourceCondition(category="dns")
+            ]
+        ),
+        # Add ObjectType for Network Stuff
+        ProcessingItem(
+            identifier="s1_network_objecttype",
+            transformation=AddConditionTransformation({
+                "ObjectType": ["DNS","Url","IP"]
+            }),
+            rule_conditions=[
+                LogsourceCondition(category="network_connection")
             ]
         )
     ]
@@ -234,11 +246,45 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         ProcessingItem(
             identifier="s1_dns_fieldmapping",
             transformation=FieldMappingTransformation({
-                "query": "DNSQuery",
-                "answer":"DNSResponse"
+                "Image": "SrcProcName",
+                "CommandLine":"SrcProcCmdLine",
+                "ParentImage":"SrcProcParentName",
+                "ParentCommandLine":"SrcProcParentCmdline",
+                "query": "DnsRequest",
+                "answer":"DnsResponse",
+                "QueryName": "DnsRequest",
+                "record_type":"DnsResponse"
             }),
+            rule_condition_linking=any,
             rule_conditions=[
+                LogsourceCondition(category="dns_query"),
                 LogsourceCondition(category="dns")
+            ]
+        ),
+        # Network Stuff
+        ProcessingItem(
+            identifier="s1_network_fieldmapping",
+            transformation=FieldMappingTransformation({
+                "Image": "SrcProcName",
+                "CommandLine":"SrcProcCmdLine",
+                "ParentImage":"SrcProcParentName",
+                "ParentCommandLine":"SrcProcParentCmdline",
+                "DestinationHostname":["Url", "DnsRequest"],
+                "DestinationPort":"DstPort",
+                "DestinationIp":"DstIP",
+                "User":"SrcProcUser",
+                "SourceIp":"SrcIP",
+                "SourcePort":"SrcPort",
+                "Protocol":"NetProtocolName",
+                "dst_ip":"DstIP",
+                "src_ip":"SrcIP",
+                "dst_port":"DstPort",
+                "src_port":"SrcPort"
+            }),
+            rule_condition_linking=any,
+            rule_conditions=[
+                LogsourceCondition(category="network_connection"),
+                LogsourceCondition(category="firewall")
             ]
         )
     ]
@@ -262,7 +308,11 @@ def sentinelone_pipeline() -> ProcessingPipeline:
                 LogsourceCondition(category="registry_add"),
                 LogsourceCondition(category="registry_delete"),
                 LogsourceCondition(category="registry_event"),
-                LogsourceCondition(category="registry_set")
+                LogsourceCondition(category="registry_set"),
+                LogsourceCondition(category="dns"),
+                LogsourceCondition(category="dns_query"),
+                LogsourceCondition(category="network_connection"),
+                LogsourceCondition(category="firewall")
             ]
         ),
     ]
