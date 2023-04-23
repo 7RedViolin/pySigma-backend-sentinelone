@@ -2,11 +2,10 @@ from sigma.conversion.state import ConversionState
 from sigma.rule import SigmaRule
 from sigma.processing.pipeline import ProcessingPipeline
 from sigma.conversion.base import TextQueryBackend
-from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT
-from sigma.types import SigmaCompareExpression, SigmaRegularExpression
+from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT, ConditionFieldEqualsValueExpression
+from sigma.types import SigmaCompareExpression, SigmaRegularExpression, SigmaString
 from sigma.pipelines.sentinelone import sentinelone_pipeline
 from sigma.conversion.deferred import DeferredQueryExpression
-from sigma.types import SigmaString
 import re
 from typing import ClassVar, Dict, Tuple, Pattern, List, Any, Union
 
@@ -31,7 +30,7 @@ class SentinelOneBackend(TextQueryBackend):
     or_token : ClassVar[str] = "OR"
     and_token : ClassVar[str] = "AND"
     not_token : ClassVar[str] = "NOT"
-    eq_token : ClassVar[str] = "="
+    eq_token : ClassVar[str] = " = "
 
     field_quote : ClassVar[str] = "'"
     field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")
@@ -56,13 +55,13 @@ class SentinelOneBackend(TextQueryBackend):
     endswith_expression   : ClassVar[str] = "{field} endswithCIS {value}"
     contains_expression   : ClassVar[str] = "{field} containsCIS {value}"
 
-    re_expression : ClassVar[str] = "{field} RegExp {regex}"
+    re_expression : ClassVar[str] = "{field} RegExp \"{regex}\""
     re_escape_char : ClassVar[str] = "\\"
     re_escape : ClassVar[Tuple[str]] = ()
     re_escape_escape_char : bool = True
     re_flag_prefix : bool = False
 
-    compare_op_expression : ClassVar[str] = "{field}{operator}{value}"
+    compare_op_expression : ClassVar[str] = "{field} {operator} \"{value}\""
     compare_operators : ClassVar[Dict[SigmaCompareExpression.CompareOperators, str]] = {
         SigmaCompareExpression.CompareOperators.LT  : "<",
         SigmaCompareExpression.CompareOperators.LTE : "<=",
@@ -84,6 +83,15 @@ class SentinelOneBackend(TextQueryBackend):
 
     unbound_value_str_expression : ClassVar[str] = '"{value}"'
     unbound_value_num_expression : ClassVar[str] = '"{value}"'
+
+    def convert_condition_field_eq_val_num(self, cond : ConditionFieldEqualsValueExpression, state : ConversionState) -> Union[str, DeferredQueryExpression]:
+        """Conversion of field = number value expressions
+        In SentinelOne, number fields must be treated as strings and quoted
+        """
+        try:
+            return self.escape_and_quote_field(cond.field) + self.eq_token + '"' + str(cond.value) + '"'
+        except TypeError:       # pragma: no cover
+            raise NotImplementedError("Field equals numeric value expressions are not supported by the backend.")
 
     def convert_condition_as_in_expression(self, cond : Union[ConditionOR, ConditionAND], state : ConversionState) -> Union[str, DeferredQueryExpression]:
         """
