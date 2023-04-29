@@ -29,7 +29,7 @@ pip install pysigma-backend-sentinelone
 ```python
 from sigma.plugins import SigmaPluginDirectory
 plugins = SigmaPluginDirectory.default_plugin_directory()
-plugins.get_plugin_by_id("sentinelone).install()
+plugins.get_plugin_by_id("sentinelone").install()
 ```
 
 ## Usage
