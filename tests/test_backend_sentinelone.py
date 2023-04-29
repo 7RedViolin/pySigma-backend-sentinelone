@@ -118,7 +118,7 @@ def test_sentinelone_cidr_query(sentinelone_backend : SentinelOneBackend):
             title: Test
             status: test
             logsource:
-                category: firewall
+                category: network_connection
                 product: test_product
             detection:
                 sel:
