@@ -59,3 +59,25 @@ detection:
 backend = SentinelOneBackend()
 print(backend.convert_rule(rule)[0])
 ```
+
+## Side Notes & Limitations
+- Backend uses Deep Visibility syntax
+- Pipeline uses Deep Visibility field names
+- Pipeline supports `linux`, `windows`, and `macos` product types
+- Pipeline supports the following category types for field mappings
+  - `process_creation`
+  - `file_event`
+  - `file_change`
+  - `file_rename`
+  - `file_delete`
+  - `image_load`
+  - `pipe_creation`
+  - `registry_add`
+  - `registry_delete`
+  - `registry_event`
+  - `registry_set`
+  - `dns_query`
+  - `dns`
+  - `network_connection`
+  - `firewall`
+- Any unsupported fields or categories will throw errors
