@@ -2,8 +2,102 @@ from sigma.processing.conditions import LogsourceCondition
 from sigma.processing.transformations import AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, SetStateTransformation, ChangeLogsourceTransformation
 from sigma.processing.conditions import LogsourceCondition, IncludeFieldCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
+from sigma.rule import SigmaDetectionItem
+from sigma.exceptions import SigmaTransformationError
+
+class InvalidFieldTransformation(DetectionItemFailureTransformation):
+    """
+    Overrides the apply_detection_item() method from DetectionItemFailureTransformation to also include the field name
+    in the error message
+    """
+
+    def apply_detection_item(self, detection_item: SigmaDetectionItem) -> None:
+        field_name = detection_item.field
+        self.message = f"Invalid SigmaDetectionItem field name encountered: {field_name}. " + self.message
+        raise SigmaTransformationError(self.message)
 
 def sentinelone_pipeline() -> ProcessingPipeline:
+
+    translation_dict = {
+        'process_creation':{                
+            "ProcessId":"TgtProcPID",
+            "Image":"TgtProcImagePath",
+            "Description":"TgtProcDisplayName", #Not sure whether this should be Description or Product???
+            "Product":"TgtProcDisplayName",
+            "Company":"TgtProcPublisher",
+            "CommandLine":"TgtProcCmdLine",
+            "CurrentDirectory":"TgtProcImagePath",
+            "User":"TgtProcUser",
+            "TerminalSessionId":"TgtProcSessionId",
+            "IntegrityLevel":"TgtProcIntegrityLevel",
+            "md5":"TgtProcMd5",
+            "sha1":"TgtProcSha1",
+            "sha256":"TgtProcSha256",
+            "ParentProcessId":"SrcProcPID",
+            "ParentImage":"SrcProcImagePath",
+            "ParentCommandLine":"SrcProcCmdLine",
+        },
+        'file':{
+            "Image": "SrcProcImagePath",
+            "CommandLine":"SrcProcCmdLine",
+            "ParentImage":"SrcProcParentImagePath",
+            "ParentCommandLine":"SrcProcParentCmdline",
+            "TargetFilename":"TgtFilePath", 
+            "SourceFilename":"TgtFileOldPath",
+            "User":"SrcProcUser"
+        },
+        'image_load':{
+            "ImageLoaded":"ModulePath",
+            "Image": "SrcProcImagePath",
+            "CommandLine":"SrcProcCmdLine",
+            "ParentImage":"SrcProcParentImagePath",
+            "ParentCommandLine":"SrcProcParentCmdline",
+            "sha1":"ModuleSha1",
+            "md5": "ModuleMd5"
+        },
+        'pipe_creation':{
+            "PipeName":"NamedPipeName",
+            "Image": "SrcProcImagePath",
+            "CommandLine":"SrcProcCmdLine",
+            "ParentImage":"SrcProcParentImagePath",
+            "ParentCommandLine":"SrcProcParentCmdline",
+        },
+        'registry':{
+            "Image": "SrcProcImagePath",
+            "CommandLine":"SrcProcCmdLine",
+            "ParentImage":"SrcProcParentImagePath",
+            "ParentCommandLine":"SrcProcParentCmdline",
+            "TargetObject": "RegistryKeyPath",
+            "Details": "RegistryValue"
+        },
+        'dns':{
+            "Image": "SrcProcImagePath",
+            "CommandLine":"SrcProcCmdLine",
+            "ParentImage":"SrcProcParentImagePath",
+            "ParentCommandLine":"SrcProcParentCmdline",
+            "query": "DnsRequest",
+            "answer":"DnsResponse",
+            "QueryName": "DnsRequest",
+            "record_type":"DnsResponse"
+        },
+        'network':{
+            "Image": "SrcProcImagePath",
+            "CommandLine":"SrcProcCmdLine",
+            "ParentImage":"SrcProcParentImagePath",
+            "ParentCommandLine":"SrcProcParentCmdline",
+            "DestinationHostname":["Url", "DnsRequest"],
+            "DestinationPort":"DstPort",
+            "DestinationIp":"DstIP",
+            "User":"SrcProcUser",
+            "SourceIp":"SrcIP",
+            "SourcePort":"SrcPort",
+            "Protocol":"NetProtocolName",
+            "dst_ip":"DstIP",
+            "src_ip":"SrcIP",
+            "dst_port":"DstPort",
+            "src_port":"SrcPort"
+        }
+    }
 
     os_filter = [
         # Add EndpointOS = Linux
@@ -151,24 +245,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # Process Creation
         ProcessingItem(
             identifier="s1_process_creation_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "ProcessId":"TgtProcPID",
-                "Image":"TgtProcName",
-                "Description":"TgtProcDisplayName", #Not sure whether this should be Description or Product???
-                "Product":"TgtProcDisplayName",
-                "Company":"TgtProcPublisher",
-                "CommandLine":"TgtProcCmdLine",
-                "CurrentDirectory":"TgtProcImagePath",
-                "User":"TgtProcUser",
-                "TerminalSessionId":"TgtProcSessionId",
-                "IntegrityLevel":"TgtProcIntegrityLevel",
-                "md5":"TgtProcMd5",
-                "sha1":"TgtProcSha1",
-                "sha256":"TgtProcSha256",
-                "ParentProcessId":"SrcProcPID",
-                "ParentImage":"SrcProcName",
-                "ParentCommandLine":"SrcProcCmdLine",
-            }),
+            transformation=FieldMappingTransformation(translation_dict['process_creation']),
             rule_conditions=[
                 LogsourceCondition(category="process_creation")
             ]
@@ -176,15 +253,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # File Stuff
         ProcessingItem(
             identifier="s1_file_change_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "Image": "SrcProcName",
-                "CommandLine":"SrcProcCmdLine",
-                "ParentImage":"SrcProcParentName",
-                "ParentCommandLine":"SrcProcParentCmdline",
-                "TargetFilename":"TgtFilePath", 
-                "SourceFilename":"TgtFileOldPath",
-                "User":"SrcProcUser"
-            }),
+            transformation=FieldMappingTransformation(translation_dict['file']),
             rule_condition_linking=any,
             rule_conditions=[
                 LogsourceCondition(category="file_change"),
@@ -196,15 +265,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # Module Load Stuff
         ProcessingItem(
             identifier="s1_image_load_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "ImageLoaded":"ModulePath",
-                "Image": "SrcProcName",
-                "CommandLine":"SrcProcCmdLine",
-                "ParentImage":"SrcProcParentName",
-                "ParentCommandLine":"SrcProcParentCmdline",
-                "sha1":"ModuleSha1",
-                "md5": "ModuleMd5"
-            }),
+            transformation=FieldMappingTransformation(translation_dict['image_load']),
             rule_conditions=[
                 LogsourceCondition(category="image_load")
             ]
@@ -212,13 +273,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # Pipe Creation Stuff
         ProcessingItem(
             identifier="s1_pipe_creation_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "PipeName":"NamedPipeName",
-                "Image": "SrcProcName",
-                "CommandLine":"SrcProcCmdLine",
-                "ParentImage":"SrcProcParentName",
-                "ParentCommandLine":"SrcProcParentCmdline",
-            }),
+            transformation=FieldMappingTransformation(translation_dict['pipe_creation']),
             rule_conditions=[
                 LogsourceCondition(category="pipe_creation")
             ]
@@ -226,14 +281,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # Registry Stuff
         ProcessingItem(
             identifier="s1_registry_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "Image": "SrcProcName",
-                "CommandLine":"SrcProcCmdLine",
-                "ParentImage":"SrcProcParentName",
-                "ParentCommandLine":"SrcProcParentCmdline",
-                "TargetObject": "RegistryKeyPath",
-                "Details": "RegistryValue"
-            }),
+            transformation=FieldMappingTransformation(translation_dict['registry']),
             rule_condition_linking=any,
             rule_conditions=[
                 LogsourceCondition(category="registry_add"),
@@ -245,16 +293,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # DNS Stuff
         ProcessingItem(
             identifier="s1_dns_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "Image": "SrcProcName",
-                "CommandLine":"SrcProcCmdLine",
-                "ParentImage":"SrcProcParentName",
-                "ParentCommandLine":"SrcProcParentCmdline",
-                "query": "DnsRequest",
-                "answer":"DnsResponse",
-                "QueryName": "DnsRequest",
-                "record_type":"DnsResponse"
-            }),
+            transformation=FieldMappingTransformation(translation_dict['dns']),
             rule_condition_linking=any,
             rule_conditions=[
                 LogsourceCondition(category="dns_query"),
@@ -264,23 +303,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         # Network Stuff
         ProcessingItem(
             identifier="s1_network_fieldmapping",
-            transformation=FieldMappingTransformation({
-                "Image": "SrcProcName",
-                "CommandLine":"SrcProcCmdLine",
-                "ParentImage":"SrcProcParentName",
-                "ParentCommandLine":"SrcProcParentCmdline",
-                "DestinationHostname":["Url", "DnsRequest"],
-                "DestinationPort":"DstPort",
-                "DestinationIp":"DstIP",
-                "User":"SrcProcUser",
-                "SourceIp":"SrcIP",
-                "SourcePort":"SrcPort",
-                "Protocol":"NetProtocolName",
-                "dst_ip":"DstIP",
-                "src_ip":"SrcIP",
-                "dst_port":"DstPort",
-                "src_port":"SrcPort"
-            }),
+            transformation=FieldMappingTransformation(translation_dict['network']),
             rule_condition_linking=any,
             rule_conditions=[
                 LogsourceCondition(category="network_connection"),
@@ -330,14 +353,26 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         )
     ]
 
+    unsupported_field_name = [
+        ProcessingItem(
+            identifier='s1_fail_field_not_supported',
+            transformation=InvalidFieldTransformation("This pipeline only supports the following fields:\n{" + 
+            '}, {'.join(sorted(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[])))) + '}'),
+            field_name_conditions=[
+                ExcludeFieldCondition(fields=set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[])))
+            ]
+        )
+    ]
+
     return ProcessingPipeline(
         name="SentinelOne pipeline",
         priority=50,
         items = [
+            *unsupported_field_name,
             *os_filter,
             *object_event_type_filter,
             *field_mappings,
             *change_logsource_info,
-            *unsupported_rule_types
+            *unsupported_rule_types,
         ]
     )
