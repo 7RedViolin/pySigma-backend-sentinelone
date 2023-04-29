@@ -125,7 +125,7 @@ def test_sentinelone_cidr_query(sentinelone_backend : SentinelOneBackend):
                     DestinationIp|cidr: 192.168.0.0/16
                 condition: sel
         """)
-    ) == ['ObjectType In ("DNS","Url","IP") AND DstIP startswithCIS "192.168."']
+    ) == ['(ObjectType In ("DNS","Url","IP")) AND DstIP startswithCIS "192.168."']
 
 def test_sentinelone_enum_query(sentinelone_backend : SentinelOneBackend):
     assert sentinelone_backend.convert(
