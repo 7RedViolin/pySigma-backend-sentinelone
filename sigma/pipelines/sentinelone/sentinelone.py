@@ -18,6 +18,11 @@ class InvalidFieldTransformation(DetectionItemFailureTransformation):
 
 def sentinelone_pipeline() -> ProcessingPipeline:
 
+    general_supported_fields = [
+        'ObjectType',
+        'EventType'
+    ]
+
     translation_dict = {
         'process_creation':{                
             "ProcessId":"TgtProcPID",
@@ -359,7 +364,7 @@ def sentinelone_pipeline() -> ProcessingPipeline:
             transformation=InvalidFieldTransformation("This pipeline only supports the following fields:\n{" + 
             '}, {'.join(sorted(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[])))) + '}'),
             field_name_conditions=[
-                ExcludeFieldCondition(fields=set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[])))
+                ExcludeFieldCondition(fields=list(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[]))) + general_supported_fields)
             ]
         )
     ]
