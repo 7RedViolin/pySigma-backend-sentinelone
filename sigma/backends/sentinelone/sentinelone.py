@@ -44,7 +44,7 @@ class SentinelOneBackend(TextQueryBackend):
     escape_char     : ClassVar[str] = "\\"
     wildcard_multi  : ClassVar[str] = "*"
     wildcard_single : ClassVar[str] = "*"
-    add_escaped     : ClassVar[str] = "\\"
+    add_escaped     : ClassVar[str] = ""
     filter_chars    : ClassVar[str] = ""
     bool_values     : ClassVar[Dict[bool, str]] = {
         True: "true",
