@@ -1,6 +1,9 @@
 import pytest
 from sigma.collection import SigmaCollection
+from sigma.rule import SigmaRule
 from sigma.backends.sentinelone import SentinelOneBackend
+from sigma.pipelines.sentinelone import sentinelone_pipeline
+
 
 @pytest.fixture
 def sentinelone_backend():
@@ -176,5 +179,21 @@ def test_sentinelone_json_output(sentinelone_backend : SentinelOneBackend):
         """), "json"
     ) == {"queries":[{"query":'EventType = "Process Creation" AND TgtProcImagePath = "valueA"', "title":"Test", "id":None, "description":None}]}
 
-
-
+def test_sentinelone_preapply_pipeline(sentinelone_backend: SentinelOneBackend):
+    """Tests for pre-applying the SentinelOne pipeline prior to converting a rule in the backend"""
+    sigma_rule = SigmaRule.from_yaml("""
+        title: Test
+        status: test
+        logsource:
+            category: process_creation
+            product: test_product
+        detection:
+            sel:
+                Image: valueA
+                ParentImage: valueB
+            condition: sel
+    """)
+    sentinelone_pipeline().apply(sigma_rule)
+    assert sentinelone_backend.convert_rule(
+        sigma_rule
+    ) == ['EventType = "Process Creation" AND (TgtProcImagePath = "valueA" AND SrcProcImagePath = "valueB")']
