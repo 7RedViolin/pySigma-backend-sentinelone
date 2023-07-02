@@ -16,6 +16,17 @@ class InvalidFieldTransformation(DetectionItemFailureTransformation):
         self.message = f"Invalid SigmaDetectionItem field name encountered: {field_name}. " + self.message
         raise SigmaTransformationError(self.message)
 
+
+def _flatten(items, seqtypes=(list, tuple)):
+    """Private function to flatten lists for Field mapping errors"""
+    try:
+        for i, x in enumerate(items):
+            while isinstance(items[i], seqtypes):
+                items[i:i+1] = items[i]
+    except IndexError:
+        pass
+    return items
+
 def sentinelone_pipeline() -> ProcessingPipeline:
 
     general_supported_fields = [
@@ -362,9 +373,15 @@ def sentinelone_pipeline() -> ProcessingPipeline:
         ProcessingItem(
             identifier='s1_fail_field_not_supported',
             transformation=InvalidFieldTransformation("This pipeline only supports the following fields:\n{" + 
-            '}, {'.join(sorted(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[])))) + '}'),
+            '}, {'.join(sorted(set(
+                list(_flatten([[k,v] for t in translation_dict.keys() for k, v in
+                               translation_dict[t].items()])) + general_supported_fields
+            )))),
             field_name_conditions=[
-                ExcludeFieldCondition(fields=list(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[]))) + general_supported_fields)
+                ExcludeFieldCondition(fields=list(set(
+                    list(_flatten([[k, v] for t in translation_dict.keys() for k, v in
+                                   translation_dict[t].items()])) + general_supported_fields
+                )))
             ]
         )
     ]
