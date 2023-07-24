@@ -69,7 +69,7 @@ class SentinelOneBackend(TextQueryBackend):
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
 
-    field_null_expression : ClassVar[str] = "{field} IS NOT EMPTY"
+    field_null_expression : ClassVar[str] = "{field} IS EMPTY"
 
     field_exists_expression : ClassVar[str] = "{field} EXISTS"             # Expression for field existence as format string with {field} placeholder for field name
     field_not_exists_expression : ClassVar[str] = "NOT {field} EXISTS"      # Expression for field non-existence as format string with {field} placeholder for field name. If not set, field_exists_expression is negated with boolean NOT.
