@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pySigma-backend-sentinelone"
-version = "0.1.1"
+version = "0.1.2"
 description = "pySigma SentinelOne backend"
 authors = ["Cori Smith <cs2718281@gmail.com>"]
 license = "MIT"
