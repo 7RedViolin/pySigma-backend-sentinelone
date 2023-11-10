@@ -30,12 +30,12 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         run: poetry run python print-coverage.py >> $GITHUB_ENV
       - name: Create coverage badge
-        if: ${{ github.repository == '7RedViolin/pySigma-backend-sentinelone' && github.event_name == 'push' && runner.os == 'Linux' }}
+        if: ${{ github.repository == '7RedViolin/pySigma-backend-carbonblack' && github.event_name == 'push' && runner.os == 'Linux' }}
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: 4babc10180a1e9c846086e155ba1dbc6
-          filename: 7RedViolin-pySigma-backend-sentinelone.json
+          gistID: 430d03b407f337c2b20029c356355f8a
+          filename: 7RedViolin-pySigma-backend-carbonblack.json
           label: Coverage
           message: ${{ env.COVERAGE }}
           color: ${{ env.COVERAGE_COLOR }}

@@ -1,7 +1,7 @@
 # pySigma-backend-sentinelone
-![Tests](https://github.com/7RedViolin/pySigma-pipeline-sentinelonedeepvisibility/actions/workflows/test.yml/badge.svg)
-![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/7RedViolin/4babc10180a1e9c846086e155ba1dbc6/raw/b755463e2db3283a191e4778dc4f6e7509210ca9/7RedViolin-pySigma-backend-sentinelone.json)
-![Status](https://img.shields.io/badge/Status-pre--release-orange)
+![Tests](https://github.com/7RedViolin/pysigma-backend-sentinelone/actions/workflows/test.yml/badge.svg)
+![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/7RedViolin/430d03b407f337c2b20029c356355f8a/raw/7RedViolin-pySigma-backend-carbonblack.json)
+![Status](https://img.shields.io/badge/Status-stable-green)
 
 # pySigma SentinelOne Backend
 
