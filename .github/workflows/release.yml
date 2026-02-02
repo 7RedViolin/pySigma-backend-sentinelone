@@ -1,14 +1,11 @@
 name: Release to PyPI
 on:
-  release:
-    types: [published]
   push:
     tags:
-      - v*.*.*
-
+      - "v*"
 jobs:
   build-and-publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -18,24 +15,40 @@ jobs:
       - name: Install Poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.4.2
-      - name: Verify versioning
-        run: |
-          [ "$(poetry version -s)" == "${GITHUB_REF#refs/tags/v}" ]
+          poetry-version: 1.4
+      - name: Install dynamic versioning plugin
+        run: poetry self add poetry-dynamic-versioning
       - name: Install dependencies
         run: poetry install
       - name: Run tests
         run: poetry run pytest
+      - name: Ensure we are on a Git tag
+        run: |
+          TAG=$(git describe --tags --exact-match 2>/dev/null || true)
+          if [ -z "$TAG" ]; then
+            echo "❌ Not on a Git tag. Refusing to build."
+            exit 1
+          fi
+          echo "✅ Building from tag: $TAG"
+      - name: Ensure working tree is clean
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ Working tree is dirty. Refusing to build."
+            exit 1
+          fi
+          echo "✅ Working tree is clean"
       - name: Build packages
         run: poetry build
       - name: Configure Poetry
         run: |
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry config pypi-token.testpypi ${{ secrets.TEST_PYPI_API_TOKEN }}
           poetry config pypi-token.pypi "${{ secrets.PYPI_API_TOKEN }}"
-      - name: Publish to test PyPI
-        if: ${{ github.event_name == 'push' }}
-        run: poetry publish -r testpypi
+      - name: Verify versioning
+        run: |
+          [ "$(poetry version -s)" == "${GITHUB_REF#refs/tags/v}" ]
+      - name: Check version not already published
+        run: |
+          VERSION=$(poetry version -s)
+          pip index versions pysigma-backend-sentinelone | grep -q "$VERSION" && exit 1 || true
+          echo "✅ Version $VERSION not already published"
       - name: Publish to PyPI
-        if: ${{ github.event_name == 'release' }}
         run: poetry publish

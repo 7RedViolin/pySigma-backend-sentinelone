@@ -16,6 +16,7 @@ It supports the following output formats:
 This backend is currently maintained by:
 
 * [Cori Smith](https://github.com/7RedViolin/)
+* [RCEMaddox](https://github.com/RCEMaddox/)
 
 ## Installation
 This can be install via pip from PyPI or using pySigma's plugin functionality
