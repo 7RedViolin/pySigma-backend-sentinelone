@@ -3,7 +3,11 @@
 ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/7RedViolin/430d03b407f337c2b20029c356355f8a/raw/7RedViolin-pySigma-backend-carbonblack.json)
 ![Status](https://img.shields.io/badge/Status-stable-green)
 
-# pySigma SentinelOne Backend
+# DEPRECATED :: pySigma SentinelOne Backend
+
+This repo is no longer maintained. SentinelOne has migrated their query language to consistently use PowerQuery fields and operators. For the latest information, please refer to [pySigma-backend-sentinelone-pq](https://github.com/7RedViolin/pySigma-backend-sentinelone-pq)
+
+--------
 
 This is the SentinelOne backend for pySigma. It provides the package `sigma.backends.sentinelone` with the `SentinelOneBackend` class.
 Further, it contains the processing pipelines in `sigma.pipelines.sentinelone` for field renames and error handling. This pipeline is automatically applied to `SigmaRule` and `SigmaCollection` objects passed to the `SentinelOneBackend` class.
